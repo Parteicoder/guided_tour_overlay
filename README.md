@@ -64,6 +64,25 @@ controller.start();
 
 To resume a tour, read the saved step yourself: `controller.start(from: await storage.loadStep())`. `TourStorage` has no "is it done" query on purpose: keep that flag in your app, so you decide whether a finished tour may run again.
 
+## Look
+
+Everything about the arrow is configurable through `ArrowRingStyle`, passed to `TourOverlay(arrowStyle: ...)`:
+
+```dart
+TourOverlay(
+  // ...
+  arrowStyle: const ArrowRingStyle(
+    color: Color(0xFF00A67E),
+    labelBackground: Colors.white, // pill behind the label for contrast
+    arrowSize: 44,
+    downIcon: Icons.south,
+    upIcon: Icons.north,
+  ),
+)
+```
+
+`TourCard(color: ...)` changes the card color; by default it is one step lighter than the page (`surfaceContainerHigh`). In tests, pass `clock:` to `TourController` instead of waiting for the tap guard.
+
 The card takes taps, so keep it away from the target: choose `cardAlignment` and `cardMargin` accordingly. A target that is built but hidden (for example in an inactive tab of an `IndexedStack`) still gets an arrow, so switch to the right tab in `onStepChanged`.
 
 Call `controller.dispose()` when you are done with it.

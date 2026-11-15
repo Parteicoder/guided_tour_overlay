@@ -1,5 +1,62 @@
 import 'package:flutter/material.dart';
 
+/// How an [ArrowRing] looks. Every value has a default, so
+/// `const ArrowRingStyle()` is the standard look; set only what you want to
+/// change.
+@immutable
+class ArrowRingStyle {
+  const ArrowRingStyle({
+    this.color = const Color(0xFFFF8A00),
+    this.ringColor,
+    this.labelColor,
+    this.labelBackground,
+    this.labelStyle,
+    this.arrowSize = 36,
+    this.ringWidth = 3,
+    this.ringPadding = 8,
+    this.hopDistance = 16,
+    this.upIcon = Icons.arrow_upward,
+    this.downIcon = Icons.arrow_downward,
+  }) : assert(hopDistance >= 0),
+       assert(arrowSize > 0),
+       assert(ringWidth >= 0),
+       assert(ringPadding >= 0);
+
+  /// Color of the arrow, and the default for the ring and the label.
+  final Color color;
+
+  /// Color of the ring. Defaults to [color].
+  final Color? ringColor;
+
+  /// Color of the label text. Defaults to [color].
+  final Color? labelColor;
+
+  /// Fills a pill behind the label, for contrast on light or busy
+  /// backgrounds. No background by default.
+  final Color? labelBackground;
+
+  /// Merged over the default label style (bold, 14 px).
+  final TextStyle? labelStyle;
+
+  /// Size of the arrow icon in logical pixels.
+  final double arrowSize;
+
+  /// Stroke width of the ring.
+  final double ringWidth;
+
+  /// Space between the target and the ring.
+  final double ringPadding;
+
+  /// How far the arrow hops, in logical pixels.
+  final double hopDistance;
+
+  /// Icon of the arrow that points up (target in the upper half).
+  final IconData upIcon;
+
+  /// Icon of the arrow that points down (target in the lower half).
+  final IconData downIcon;
+}
+
 /// A hopping arrow with an optional label and a pulsing ring around [target].
 ///
 /// Place it as a `Positioned.fill` child of a `Stack` that covers the same
@@ -16,9 +73,8 @@ class ArrowRing extends StatefulWidget {
     super.key,
     required this.target,
     this.label,
-    this.color = const Color(0xFFFF8A00),
-    this.hopDistance = 16,
-  }) : assert(hopDistance >= 0);
+    this.style = const ArrowRingStyle(),
+  });
 
   /// The area to point at, in the coordinates of the surrounding stack.
   final Rect target;
@@ -26,11 +82,8 @@ class ArrowRing extends StatefulWidget {
   /// Short text next to the arrow, for example "Tap here".
   final String? label;
 
-  /// Color of the arrow, the label and the ring.
-  final Color color;
-
-  /// How far the arrow hops, in logical pixels.
-  final double hopDistance;
+  /// Colors, sizes and icons.
+  final ArrowRingStyle style;
 
   @override
   State<ArrowRing> createState() => _ArrowRingState();
@@ -49,7 +102,6 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
 
   bool _reduceMotion = false;
 
-  static const double _arrowSize = 36;
   static const double _gap = 8;
   static const double _labelWidth = 120;
 
@@ -104,13 +156,13 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
                 final hop = _reduceMotion
                     ? 0.0
                     : Curves.easeInOut.transform(_hop.value) *
-                          widget.hopDistance;
+                          widget.style.hopDistance;
                 // Distance from the target: gap plus the part of the hop
                 // that has not been travelled yet, so the arrow hops towards
                 // the target and never covers it.
-                final distance = _gap + (widget.hopDistance - hop);
+                final distance = _gap + (widget.style.hopDistance - hop);
                 final pulse = _reduceMotion ? 0.5 : _pulse.value;
-                final ring = target.inflate(8);
+                final ring = target.inflate(widget.style.ringPadding);
                 final radius = ring.shortestSide / 2;
                 final left = (target.center.dx - _labelWidth / 2).clamp(
                   0.0,
@@ -128,7 +180,12 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(radius),
-                              border: Border.all(color: widget.color, width: 3),
+                              border: Border.all(
+                                color:
+                                    widget.style.ringColor ??
+                                    widget.style.color,
+                                width: widget.style.ringWidth,
+                              ),
                             ),
                           ),
                         ),
@@ -154,22 +211,36 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
   }
 
   Widget _arrow(bool pointsUp) {
+    final style = widget.style;
     final icon = Icon(
-      pointsUp ? Icons.arrow_upward : Icons.arrow_downward,
-      size: _arrowSize,
-      color: widget.color,
+      pointsUp ? style.upIcon : style.downIcon,
+      size: style.arrowSize,
+      color: style.color,
     );
-    final text = widget.label == null
-        ? null
-        : Text(
-            widget.label!,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: widget.color,
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-            ),
-          );
+    Widget? text;
+    if (widget.label != null) {
+      text = Text(
+        widget.label!,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: style.labelColor ?? style.color,
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ).merge(style.labelStyle),
+      );
+      if (style.labelBackground != null) {
+        text = DecoratedBox(
+          decoration: BoxDecoration(
+            color: style.labelBackground,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            child: text,
+          ),
+        );
+      }
+    }
     // Own transparent Material: outside a Scaffold the text would otherwise
     // fall back to the red double-underlined error style.
     return Material(

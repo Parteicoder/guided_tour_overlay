@@ -23,6 +23,7 @@ TourCard _card({
 Widget _host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
+  overlayStyleTests();
   group('TourCard', () {
     testWidgets('large text scale does not overflow on a narrow screen', (
       t,
@@ -307,5 +308,40 @@ void main() {
         lessThan(1),
       );
     });
+  });
+}
+
+void overlayStyleTests() {
+  testWidgets('TourOverlay passes arrowStyle on to the arrow', (t) async {
+    final key = GlobalKey();
+    await t.pumpWidget(
+      _host(
+        Stack(
+          children: [
+            Positioned(
+              left: 100,
+              top: 400,
+              child: SizedBox(key: key, width: 80, height: 40),
+            ),
+            Positioned.fill(
+              child: TourOverlay(
+                target: key,
+                card: _card(),
+                cardAlignment: Alignment.topCenter,
+                arrowStyle: const ArrowRingStyle(
+                  color: Color(0xFF123456),
+                  downIcon: Icons.south,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await t.pump();
+    expect(
+      t.widget<Icon>(find.byIcon(Icons.south)).color,
+      const Color(0xFF123456),
+    );
   });
 }

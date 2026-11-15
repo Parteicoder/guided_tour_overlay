@@ -32,6 +32,7 @@ List<TourStep> _steps(int n) => [
 ];
 
 void main() {
+  clockTests();
   test(
     'next walks through the steps, the end calls onFinished and finish',
     () async {
@@ -261,5 +262,26 @@ void main() {
     final f = c.next();
     c.dispose();
     await f;
+  });
+}
+
+void clockTests() {
+  test('tap guard uses the injected clock', () async {
+    var now = DateTime(2026, 1, 1);
+    final c = TourController(
+      steps: const [
+        TourStep(id: 'a', title: 'a', text: 'a'),
+        TourStep(id: 'b', title: 'b', text: 'b'),
+        TourStep(id: 'c', title: 'c', text: 'c'),
+      ],
+      clock: () => now,
+    );
+    await c.start();
+    await c.next();
+    expect(c.index, 0, reason: 'too soon: ignored');
+    now = now.add(const Duration(milliseconds: 400));
+    await c.next();
+    expect(c.index, 1);
+    c.dispose();
   });
 }

@@ -7,7 +7,8 @@ import 'tour_storage.dart';
 /// Runs a tour: which step is current, next, back, skip.
 ///
 /// The state changes synchronously. A second `next` or `back` within
-/// [tapGuard] of the last step change is ignored, so a fast double tap never
+/// [tapGuard] of the last step change (measured with `clock`, real time by
+/// default) is ignored, so a fast double tap never
 /// skips a step. Errors from [storage] and from the callbacks are caught and
 /// reported through [FlutterError.reportError]: a failing disk or a buggy
 /// callback never stops the tour.
@@ -19,12 +20,17 @@ class TourController extends ChangeNotifier {
     this.onFinished,
     this.onSkipped,
     this.tapGuard = const Duration(milliseconds: 350),
-  }) : steps = List.unmodifiable(steps);
+    DateTime Function()? clock,
+  }) : steps = List.unmodifiable(steps),
+       _now = clock ?? DateTime.now;
 
   final List<TourStep> steps;
 
   /// Ignore `next` and `back` calls that follow a step change this closely.
   final Duration tapGuard;
+
+  // Injectable so an app's tests do not have to wait in real time.
+  final DateTime Function() _now;
   final TourStorage? storage;
 
   /// Called after every step change, for example to switch a tab.
@@ -41,7 +47,7 @@ class TourController extends ChangeNotifier {
 
   bool get _tooSoon {
     final last = _lastChange;
-    return last != null && DateTime.now().difference(last) < tapGuard;
+    return last != null && _now().difference(last) < tapGuard;
   }
 
   bool get running => _index != null;
@@ -87,7 +93,7 @@ class TourController extends ChangeNotifier {
 
   Future<void> _goTo(int index) async {
     _index = index;
-    _lastChange = DateTime.now();
+    _lastChange = _now();
     notifyListeners();
     final step = steps[index];
     // Save first, then the callback: a callback that ends the tour must not

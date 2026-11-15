@@ -21,6 +21,7 @@ class TourOverlay extends StatefulWidget {
     this.cardMargin = const EdgeInsets.all(16),
     this.cardAlignment = Alignment.bottomCenter,
     this.maxCardWidth = 480,
+    this.arrowStyle = const ArrowRingStyle(),
   });
 
   final Widget card;
@@ -36,6 +37,9 @@ class TourOverlay extends StatefulWidget {
   /// pointed at.
   final Alignment cardAlignment;
   final double maxCardWidth;
+
+  /// Look of the arrow, the label and the ring.
+  final ArrowRingStyle arrowStyle;
 
   @override
   State<TourOverlay> createState() => _TourOverlayState();
@@ -94,7 +98,11 @@ class _TourOverlayState extends State<TourOverlay> {
       children: [
         if (!_rect.isEmpty)
           Positioned.fill(
-            child: ArrowRing(target: _rect, label: widget.arrowLabel),
+            child: ArrowRing(
+              target: _rect,
+              label: widget.arrowLabel,
+              style: widget.arrowStyle,
+            ),
           ),
         Positioned(
           left: 0,

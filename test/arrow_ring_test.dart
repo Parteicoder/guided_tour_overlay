@@ -5,6 +5,7 @@ import 'package:guided_tour_overlay/guided_tour_overlay.dart';
 Widget _host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
+  arrowStyleTests();
   testWidgets('empty target draws nothing and does not throw', (t) async {
     await t.pumpWidget(
       _host(
@@ -238,5 +239,91 @@ void main() {
       isNot(TextDecoration.underline),
     );
     expect(style.data, 'Tap');
+  });
+}
+
+void arrowStyleTests() {
+  testWidgets('style: custom icons, size and colors are used', (t) async {
+    await t.pumpWidget(
+      _host(
+        const Stack(
+          children: [
+            Positioned.fill(
+              child: ArrowRing(
+                target: Rect.fromLTWH(100, 500, 80, 40),
+                label: 'Tap',
+                style: ArrowRingStyle(
+                  color: Color(0xFF112233),
+                  labelColor: Color(0xFF445566),
+                  labelBackground: Color(0xFFFFFFFF),
+                  arrowSize: 48,
+                  downIcon: Icons.south,
+                  upIcon: Icons.north,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final icon = t.widget<Icon>(find.byIcon(Icons.south));
+    expect(icon.size, 48);
+    expect(icon.color, const Color(0xFF112233));
+    expect(find.byIcon(Icons.arrow_downward), findsNothing);
+    final text = t.widget<Text>(find.text('Tap'));
+    expect(text.style?.color, const Color(0xFF445566));
+    final pill = find.ancestor(
+      of: find.text('Tap'),
+      matching: find.byType(DecoratedBox),
+    );
+    expect(
+      t
+          .widgetList<DecoratedBox>(pill)
+          .any(
+            (d) =>
+                d.decoration is BoxDecoration &&
+                (d.decoration as BoxDecoration).color ==
+                    const Color(0xFFFFFFFF),
+          ),
+      isTrue,
+    );
+  });
+
+  testWidgets('style: ring color, width and padding', (t) async {
+    await t.pumpWidget(
+      _host(
+        const Stack(
+          children: [
+            Positioned.fill(
+              child: ArrowRing(
+                target: Rect.fromLTWH(100, 500, 80, 40),
+                style: ArrowRingStyle(
+                  ringColor: Color(0xFF00FF00),
+                  ringWidth: 5,
+                  ringPadding: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final ring = t
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => d.decoration)
+        .whereType<BoxDecoration>()
+        .firstWhere((d) => d.border != null);
+    final side = (ring.border! as Border).top;
+    expect(side.color, const Color(0xFF00FF00));
+    expect(side.width, 5);
+    final box = t.getSize(
+      find.byWidgetPredicate(
+        (w) =>
+            w is DecoratedBox &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).border != null,
+      ),
+    );
+    expect(box.width, 80 + 24);
   });
 }

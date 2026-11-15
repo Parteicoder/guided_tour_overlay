@@ -17,6 +17,8 @@ class TourCard extends StatelessWidget {
     required this.skipLabel,
     this.onBack,
     this.backLabel = '',
+    this.color,
+    this.elevation = 6,
   });
 
   final String title;
@@ -33,6 +35,12 @@ class TourCard extends StatelessWidget {
   final String nextLabel;
   final String skipLabel;
 
+  /// Background of the card. Defaults to `colorScheme.surfaceContainerHigh`,
+  /// one step lighter than the page, so the card stands out in dark mode too.
+  final Color? color;
+
+  final double elevation;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -40,8 +48,8 @@ class TourCard extends StatelessWidget {
       container: true,
       liveRegion: true,
       child: Material(
-        elevation: 6,
-        color: theme.colorScheme.surface,
+        elevation: elevation,
+        color: color ?? theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -49,16 +57,24 @@ class TourCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(progress, style: theme.textTheme.labelSmall),
-              const SizedBox(height: 4),
-              Semantics(
-                header: true,
-                child: Text(title, style: theme.textTheme.titleMedium),
-              ),
-              const SizedBox(height: 6),
+              // Everything above the buttons scrolls when the card is short
+              // (landscape, big system font); the buttons always stay in view.
               Flexible(
                 child: SingleChildScrollView(
-                  child: Text(text, style: theme.textTheme.bodyMedium),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(progress, style: theme.textTheme.labelSmall),
+                      const SizedBox(height: 4),
+                      Semantics(
+                        header: true,
+                        child: Text(title, style: theme.textTheme.titleMedium),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(text, style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 8),

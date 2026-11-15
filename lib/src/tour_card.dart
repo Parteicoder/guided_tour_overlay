@@ -36,38 +36,45 @@ class TourCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      elevation: 6,
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(progress, style: theme.textTheme.labelSmall),
-            const SizedBox(height: 4),
-            Text(title, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 6),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Text(text, style: theme.textTheme.bodyMedium),
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Material(
+        elevation: 6,
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(progress, style: theme.textTheme.labelSmall),
+              const SizedBox(height: 4),
+              Semantics(
+                header: true,
+                child: Text(title, style: theme.textTheme.titleMedium),
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              alignment: WrapAlignment.end,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              children: [
-                TextButton(onPressed: onSkip, child: Text(skipLabel)),
-                if (onBack != null)
-                  TextButton(onPressed: onBack, child: Text(backLabel)),
-                FilledButton(onPressed: onNext, child: Text(nextLabel)),
-              ],
-            ),
-          ],
+              const SizedBox(height: 6),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Text(text, style: theme.textTheme.bodyMedium),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                children: [
+                  TextButton(onPressed: onSkip, child: Text(skipLabel)),
+                  if (onBack != null)
+                    TextButton(onPressed: onBack, child: Text(backLabel)),
+                  FilledButton(onPressed: onNext, child: Text(nextLabel)),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

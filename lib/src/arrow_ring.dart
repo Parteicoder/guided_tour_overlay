@@ -104,7 +104,7 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
                 final hop = _reduceMotion
                     ? 0.0
                     : Curves.easeInOut.transform(_hop.value) *
-                        widget.hopDistance;
+                          widget.hopDistance;
                 // Distance from the target: gap plus the part of the hop
                 // that has not been travelled yet, so the arrow hops towards
                 // the target and never covers it.
@@ -112,8 +112,10 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
                 final pulse = _reduceMotion ? 0.5 : _pulse.value;
                 final ring = target.inflate(8);
                 final radius = ring.shortestSide / 2;
-                final left = (target.center.dx - _labelWidth / 2)
-                    .clamp(0.0, (box.maxWidth - _labelWidth).clamp(0.0, double.infinity));
+                final left = (target.center.dx - _labelWidth / 2).clamp(
+                  0.0,
+                  (box.maxWidth - _labelWidth).clamp(0.0, double.infinity),
+                );
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -136,9 +138,10 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
                       left: left,
                       width: _labelWidth,
                       top: below ? target.bottom + distance : null,
-                      bottom:
-                          below ? null : box.maxHeight - target.top + distance,
-                      child: _arrow(below),
+                      bottom: below
+                          ? null
+                          : box.maxHeight - target.top + distance,
+                      child: ExcludeSemantics(child: _arrow(below)),
                     ),
                   ],
                 );
@@ -173,11 +176,7 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
       type: MaterialType.transparency,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          if (pointsUp) icon,
-          ?text,
-          if (!pointsUp) icon,
-        ],
+        children: [if (pointsUp) icon, ?text, if (!pointsUp) icon],
       ),
     );
   }

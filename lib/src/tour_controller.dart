@@ -1,24 +1,30 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import 'tour_step.dart';
 import 'tour_storage.dart';
 
 /// Runs a tour: which step is current, next, back, skip.
 ///
-/// The state changes synchronously, so a fast double tap on "next" moves two
-/// steps and never the same step twice. Errors from [storage] and from the
-/// callbacks are caught: a failing disk or a buggy callback never stops the
-/// tour.
+/// The state changes synchronously. A second `next` or `back` within
+/// [tapGuard] of the last step change is ignored, so a fast double tap never
+/// skips a step. Errors from [storage] and from the callbacks are caught and
+/// reported through [FlutterError.reportError]: a failing disk or a buggy
+/// callback never stops the tour.
 class TourController extends ChangeNotifier {
   TourController({
-    required this.steps,
+    required List<TourStep> steps,
     this.storage,
     this.onStepChanged,
     this.onFinished,
     this.onSkipped,
-  });
+    this.tapGuard = const Duration(milliseconds: 350),
+  }) : steps = List.unmodifiable(steps);
 
   final List<TourStep> steps;
+
+  /// Ignore `next` and `back` calls that follow a step change this closely.
+  final Duration tapGuard;
   final TourStorage? storage;
 
   /// Called after every step change, for example to switch a tab.
@@ -31,6 +37,12 @@ class TourController extends ChangeNotifier {
   final VoidCallback? onSkipped;
 
   int? _index;
+  DateTime? _lastChange;
+
+  bool get _tooSoon {
+    final last = _lastChange;
+    return last != null && DateTime.now().difference(last) < tapGuard;
+  }
 
   bool get running => _index != null;
   int? get index => _index;
@@ -46,7 +58,7 @@ class TourController extends ChangeNotifier {
   /// is called.
   Future<void> next() async {
     final i = _index;
-    if (i == null) return;
+    if (i == null || _tooSoon) return;
     if (i >= steps.length - 1) {
       _index = null;
       notifyListeners();
@@ -60,7 +72,7 @@ class TourController extends ChangeNotifier {
   /// Goes to the previous step. Does nothing on the first step.
   Future<void> back() async {
     final i = _index;
-    if (i == null || i == 0) return;
+    if (i == null || i == 0 || _tooSoon) return;
     await _goTo(i - 1);
   }
 
@@ -75,17 +87,21 @@ class TourController extends ChangeNotifier {
 
   Future<void> _goTo(int index) async {
     _index = index;
+    _lastChange = DateTime.now();
     notifyListeners();
     final step = steps[index];
+    // Save first, then the callback: a callback that ends the tour must not
+    // be followed by a stale saveStep.
+    final saved = _guard(() => storage?.saveStep(index));
     _guardSync(() => onStepChanged?.call(index, step));
-    await _guard(() => storage?.saveStep(index));
+    await saved;
   }
 
   Future<void> _guard(Future<void>? Function() action) async {
     try {
       await action();
     } catch (e, s) {
-      debugPrint('guided_tour_overlay: storage error: $e\n$s');
+      _report(e, s, 'storage');
     }
   }
 
@@ -93,7 +109,18 @@ class TourController extends ChangeNotifier {
     try {
       action?.call();
     } catch (e, s) {
-      debugPrint('guided_tour_overlay: callback error: $e\n$s');
+      _report(e, s, 'callback');
     }
+  }
+
+  void _report(Object e, StackTrace s, String what) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: e,
+        stack: s,
+        library: 'guided_tour_overlay',
+        context: ErrorDescription('while calling the $what of a tour'),
+      ),
+    );
   }
 }

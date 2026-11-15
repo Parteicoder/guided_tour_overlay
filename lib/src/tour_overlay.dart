@@ -9,7 +9,9 @@ import 'arrow_ring.dart';
 ///
 /// Place it as a `Positioned.fill` child of a `Stack` above the app. If
 /// [target] is null or not built (not attached to a render object), only the
-/// card is shown.
+/// card is shown. A target that is built but not visible (for example in an
+/// inactive tab of an `IndexedStack`) still gets an arrow: switch to the
+/// right tab in `onStepChanged`.
 class TourOverlay extends StatefulWidget {
   const TourOverlay({
     super.key,
@@ -17,6 +19,7 @@ class TourOverlay extends StatefulWidget {
     this.target,
     this.arrowLabel,
     this.cardMargin = const EdgeInsets.all(16),
+    this.cardAlignment = Alignment.bottomCenter,
     this.maxCardWidth = 480,
   });
 
@@ -27,6 +30,11 @@ class TourOverlay extends StatefulWidget {
   /// Space around the card. The caller adds the height of a bottom
   /// navigation bar and the safe area here.
   final EdgeInsets cardMargin;
+
+  /// Where the card sits. Pick a side (and a [cardMargin]) that keeps the
+  /// target free: the card takes taps, so it must not cover what the user is
+  /// pointed at.
+  final Alignment cardAlignment;
   final double maxCardWidth;
 
   @override
@@ -74,9 +82,10 @@ class _TourOverlayState extends State<TourOverlay> {
         !ownBox.hasSize) {
       return Rect.zero;
     }
-    final topLeft =
-        ownBox.globalToLocal(targetBox.localToGlobal(Offset.zero));
-    return topLeft & targetBox.size;
+    return MatrixUtils.transformRect(
+      targetBox.getTransformTo(ownBox),
+      Offset.zero & targetBox.size,
+    );
   }
 
   @override
@@ -95,7 +104,7 @@ class _TourOverlayState extends State<TourOverlay> {
           child: Padding(
             padding: widget.cardMargin,
             child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: widget.cardAlignment,
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: widget.maxCardWidth),
                 child: widget.card,

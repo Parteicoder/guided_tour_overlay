@@ -9,7 +9,7 @@ A hopping arrow, a pulsing ring and an explanation card float above your live UI
 - `ArrowRing`: hopping arrow with an optional label and a pulsing ring around a rectangle. Ignores all pointer events, stands still when the system asks to reduce animations.
 - `TourCard`: explanation card with progress, title, text and "back", "next" and "skip" buttons. All labels come from you, the package ships no texts.
 - `TourOverlay`: puts the arrow on a target (found through a `GlobalKey`, followed while it moves) and the card at the bottom.
-- `TourController`: current step, `next`, `back`, `skip`, callbacks per step, double taps never skip a step, errors from storage or callbacks never stop the tour.
+- `TourController`: current step, `next`, `back`, `skip`, callbacks per step, a double tap never skips a step (`next` and `back` ignore calls within `tapGuard`, 350 ms by default), errors from storage or callbacks never stop the tour.
 - `TourStorage`: a small interface to keep progress. The package stores nothing itself.
 
 ## Usage
@@ -62,7 +62,11 @@ ListenableBuilder(
 controller.start();
 ```
 
-Pass a `TourStorage` to `TourController` to remember the step and whether the tour is done.
+To resume a tour, read the saved step yourself: `controller.start(from: await storage.loadStep())`. `TourStorage` has no "is it done" query on purpose: keep that flag in your app, so you decide whether a finished tour may run again.
+
+The card takes taps, so keep it away from the target: choose `cardAlignment` and `cardMargin` accordingly. A target that is built but hidden (for example in an inactive tab of an `IndexedStack`) still gets an arrow, so switch to the right tab in `onStepChanged`.
+
+Call `controller.dispose()` when you are done with it.
 
 ## License
 

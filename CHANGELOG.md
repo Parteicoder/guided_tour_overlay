@@ -1,3 +1,3 @@
-## 0.1.0 (unreleased)
+## 0.1.0
 
-- `ArrowRing` marker.
+- `ArrowRing`, `TourCard`, `TourOverlay`, `TourController`, `TourStep`, `TourStorage`.

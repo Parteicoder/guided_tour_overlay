@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 ///
 /// Place it as a `Positioned.fill` child of a `Stack` that covers the same
 /// area [target] is measured in. It ignores all pointer events, so the UI
-/// underneath stays fully usable. An empty [target] draws nothing.
+/// underneath stays fully usable. An empty [target] draws nothing and runs no
+/// animation.
+///
+/// The arrow sits above a target in the lower half of the area (pointing
+/// down) and below a target in the upper half (pointing up). It hops towards
+/// the target. When the system asks to reduce animations, the arrow and ring
+/// are drawn without moving.
 class ArrowRing extends StatefulWidget {
   const ArrowRing({
     super.key,
@@ -12,7 +18,7 @@ class ArrowRing extends StatefulWidget {
     this.label,
     this.color = const Color(0xFFFF8A00),
     this.hopDistance = 16,
-  });
+  }) : assert(hopDistance >= 0);
 
   /// The area to point at, in the coordinates of the surrounding stack.
   final Rect target;
@@ -34,12 +40,42 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
   late final AnimationController _hop = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1200),
-  )..repeat(reverse: true);
+  );
 
   late final AnimationController _pulse = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1600),
-  )..repeat();
+  );
+
+  bool _reduceMotion = false;
+
+  static const double _arrowSize = 36;
+  static const double _gap = 8;
+  static const double _labelWidth = 120;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _syncAnimations();
+  }
+
+  @override
+  void didUpdateWidget(ArrowRing old) {
+    super.didUpdateWidget(old);
+    _syncAnimations();
+  }
+
+  void _syncAnimations() {
+    final shouldRun = !widget.target.isEmpty && !_reduceMotion;
+    if (shouldRun && !_hop.isAnimating) {
+      _hop.repeat(reverse: true);
+      _pulse.repeat();
+    } else if (!shouldRun && _hop.isAnimating) {
+      _hop.stop();
+      _pulse.stop();
+    }
+  }
 
   @override
   void dispose() {
@@ -47,9 +83,6 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
     _pulse.dispose();
     super.dispose();
   }
-
-  static const double _arrowSize = 36;
-  static const double _gap = 8;
 
   @override
   Widget build(BuildContext context) {
@@ -59,30 +92,40 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
       child: SizedBox.expand(
         child: LayoutBuilder(
           builder: (context, box) {
+            assert(
+              box.hasBoundedWidth && box.hasBoundedHeight,
+              'ArrowRing needs bounded constraints, '
+              'use it as a Positioned.fill child of a Stack.',
+            );
             final below = target.center.dy < box.maxHeight / 2;
             return AnimatedBuilder(
               animation: Listenable.merge([_hop, _pulse]),
               builder: (context, _) {
-                final hop = Curves.easeInOut.transform(_hop.value) *
-                    widget.hopDistance;
-                final pulse = _pulse.value;
-                final ringSize = (target.longestSide + 16);
-                final scale = 0.9 + 0.6 * pulse;
+                final hop = _reduceMotion
+                    ? 0.0
+                    : Curves.easeInOut.transform(_hop.value) *
+                        widget.hopDistance;
+                // Distance from the target: gap plus the part of the hop
+                // that has not been travelled yet, so the arrow hops towards
+                // the target and never covers it.
+                final distance = _gap + (widget.hopDistance - hop);
+                final pulse = _reduceMotion ? 0.5 : _pulse.value;
+                final ring = target.inflate(8);
+                final radius = ring.shortestSide / 2;
+                final left = (target.center.dx - _labelWidth / 2)
+                    .clamp(0.0, (box.maxWidth - _labelWidth).clamp(0.0, double.infinity));
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Positioned(
-                      left: target.center.dx - ringSize / 2,
-                      top: target.center.dy - ringSize / 2,
-                      width: ringSize,
-                      height: ringSize,
+                    Positioned.fromRect(
+                      rect: ring,
                       child: Opacity(
                         opacity: (1 - pulse).clamp(0.0, 1.0),
                         child: Transform.scale(
-                          scale: scale,
+                          scale: 1 + 0.2 * pulse,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              shape: BoxShape.circle,
+                              borderRadius: BorderRadius.circular(radius),
                               border: Border.all(color: widget.color, width: 3),
                             ),
                           ),
@@ -90,14 +133,11 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
                       ),
                     ),
                     Positioned(
-                      left: target.center.dx - 60,
-                      width: 120,
-                      top: below
-                          ? target.bottom + _gap + hop
-                          : null,
-                      bottom: below
-                          ? null
-                          : box.maxHeight - target.top + _gap - hop,
+                      left: left,
+                      width: _labelWidth,
+                      top: below ? target.bottom + distance : null,
+                      bottom:
+                          below ? null : box.maxHeight - target.top + distance,
                       child: _arrow(below),
                     ),
                   ],
@@ -127,13 +167,18 @@ class _ArrowRingState extends State<ArrowRing> with TickerProviderStateMixin {
               fontSize: 14,
             ),
           );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (pointsUp) icon,
-        ?text,
-        if (!pointsUp) icon,
-      ],
+    // Own transparent Material: outside a Scaffold the text would otherwise
+    // fall back to the red double-underlined error style.
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (pointsUp) icon,
+          ?text,
+          if (!pointsUp) icon,
+        ],
+      ),
     );
   }
 }

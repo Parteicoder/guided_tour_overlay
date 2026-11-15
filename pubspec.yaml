@@ -1,0 +1,23 @@
+name: guided_tour_overlay
+description: A guided tour for Flutter apps that only shows, never blocks. Hopping arrow, pulsing ring and an explanation card float above the live UI, and the app stays fully usable.
+version: 0.1.0
+repository: https://github.com/Parteicoder/guided_tour_overlay
+issue_tracker: https://github.com/Parteicoder/guided_tour_overlay/issues
+topics:
+  - onboarding
+  - tutorial
+  - overlay
+  - widget
+
+environment:
+  sdk: ^3.13.2
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

@@ -13,6 +13,7 @@ import 'tour_storage.dart';
 /// reported through [FlutterError.reportError]: a failing disk or a buggy
 /// callback never stops the tour.
 class TourController extends ChangeNotifier {
+  /// Creates a controller for [steps]. Nothing runs until [start] is called.
   TourController({
     required List<TourStep> steps,
     this.storage,
@@ -24,6 +25,7 @@ class TourController extends ChangeNotifier {
   }) : steps = List.unmodifiable(steps),
        _now = clock ?? DateTime.now;
 
+  /// The steps of the tour, in order. The list cannot be modified.
   final List<TourStep> steps;
 
   /// Ignore `next` and `back` calls that follow a step change this closely.
@@ -31,6 +33,8 @@ class TourController extends ChangeNotifier {
 
   // Injectable so an app's tests do not have to wait in real time.
   final DateTime Function() _now;
+
+  /// Where progress is kept, or null to keep nothing.
   final TourStorage? storage;
 
   /// Called after every step change, for example to switch a tab.
@@ -50,8 +54,13 @@ class TourController extends ChangeNotifier {
     return last != null && _now().difference(last) < tapGuard;
   }
 
+  /// Whether a tour is currently running.
   bool get running => _index != null;
+
+  /// Index of the current step, or null when no tour is running.
   int? get index => _index;
+
+  /// The current step, or null when no tour is running.
   TourStep? get current => _index == null ? null : steps[_index!];
 
   /// Starts the tour at step [from], clamped to the available steps.

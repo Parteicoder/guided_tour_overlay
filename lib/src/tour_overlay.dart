@@ -13,6 +13,7 @@ import 'arrow_ring.dart';
 /// inactive tab of an `IndexedStack`) still gets an arrow: switch to the
 /// right tab in `onStepChanged`.
 class TourOverlay extends StatefulWidget {
+  /// Creates an overlay with a [card] and an arrow on [target].
   const TourOverlay({
     super.key,
     required this.card,
@@ -24,8 +25,13 @@ class TourOverlay extends StatefulWidget {
     this.arrowStyle = const ArrowRingStyle(),
   });
 
+  /// The explanation card, usually a `TourCard`.
   final Widget card;
+
+  /// The widget to point at, or null to show only the card.
   final GlobalKey? target;
+
+  /// Short text next to the arrow.
   final String? arrowLabel;
 
   /// Space around the card. The caller adds the height of a bottom
@@ -36,6 +42,8 @@ class TourOverlay extends StatefulWidget {
   /// target free: the card takes taps, so it must not cover what the user is
   /// pointed at.
   final Alignment cardAlignment;
+
+  /// The card is never wider than this.
   final double maxCardWidth;
 
   /// Look of the arrow, the label and the ring.

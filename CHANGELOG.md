@@ -1,3 +1,8 @@
+## 0.2.1
+
+- Documentation: full API docs, a rewritten README with demo GIFs, screenshots on pub.dev.
+- No code changes.
+
 ## 0.2.0
 
 - `ArrowRingStyle`: arrow color, ring color, label color, label background pill, label text style, arrow size, ring width and padding, hop distance and the up and down icons can all be changed. `ArrowRing` takes it as `style`, `TourOverlay` as `arrowStyle`. Breaking: `ArrowRing.color` and `ArrowRing.hopDistance` moved into the style.

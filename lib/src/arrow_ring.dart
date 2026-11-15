@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 /// change.
 @immutable
 class ArrowRingStyle {
+  /// Creates a style. All values are optional.
   const ArrowRingStyle({
     this.color = const Color(0xFFFF8A00),
     this.ringColor,
@@ -69,6 +70,7 @@ class ArrowRingStyle {
 /// the target. When the system asks to reduce animations, the arrow and ring
 /// are drawn without moving.
 class ArrowRing extends StatefulWidget {
+  /// Creates an arrow and ring around [target].
   const ArrowRing({
     super.key,
     required this.target,

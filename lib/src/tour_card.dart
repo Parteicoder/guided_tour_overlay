@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 /// All labels come from the caller, the package ships no texts. The card has
 /// its own [Material] because the overlay usually sits outside a `Scaffold`.
 class TourCard extends StatelessWidget {
+  /// Creates a card for one tour step.
   const TourCard({
     super.key,
     required this.title,
@@ -21,7 +22,10 @@ class TourCard extends StatelessWidget {
     this.elevation = 6,
   });
 
+  /// Title of the step, shown as a header.
   final String title;
+
+  /// Explanation text of the step.
   final String text;
 
   /// For example "2 of 5".
@@ -29,16 +33,27 @@ class TourCard extends StatelessWidget {
 
   /// Back button is hidden when this is null (first step).
   final VoidCallback? onBack;
+
+  /// Called when the user taps the "next" button.
   final VoidCallback onNext;
+
+  /// Called when the user taps the "skip" button.
   final VoidCallback onSkip;
+
+  /// Label of the "back" button.
   final String backLabel;
+
+  /// Label of the "next" button, for example "Next" or "Done".
   final String nextLabel;
+
+  /// Label of the "skip" button.
   final String skipLabel;
 
   /// Background of the card. Defaults to `colorScheme.surfaceContainerHigh`,
   /// one step lighter than the page, so the card stands out in dark mode too.
   final Color? color;
 
+  /// Shadow depth of the card.
   final double elevation;
 
   @override

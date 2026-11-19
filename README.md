@@ -18,7 +18,8 @@ Most tour packages dim the screen and cut a hole into the dark layer. That block
 - **Tab-friendly.** A target that is built but hidden (for example in an inactive tab of an `IndexedStack`) still gets its arrow. Switch to the right tab in `onStepChanged`.
 - **Safe against double taps.** `next` and `back` ignore calls within 350 ms of the last step change, so a fast double tap never skips a step.
 - **Never crashes your app.** Errors from your storage or your callbacks are reported through `FlutterError.reportError` and the tour keeps going.
-- **No texts, no storage, no dependencies.** All labels come from you, progress goes wherever you want, and the package only depends on Flutter.
+- **No texts, no storage, no extra dependencies.** All labels come from you, progress goes wherever you want, and the package only depends on Flutter and `material_ui`.
+- **Needs Flutter 3.50 or newer** and `material_ui` in your app (since 0.3.0). Apps that still use `package:flutter/material.dart` stay on 0.2.x: the Material widgets and `Theme` of the two libraries are different classes.
 - **Accessible.** The card is a live region with a header, the arrow is hidden from screen readers, and with "reduce animations" the arrow and ring stand still.
 
 ## Install

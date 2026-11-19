@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// How an [ArrowRing] looks. Every value has a default, so
 /// `const ArrowRingStyle()` is the standard look; set only what you want to

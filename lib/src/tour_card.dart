@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The explanation card of a tour step: progress, title, text and the
 /// buttons "back", "next" and "skip".

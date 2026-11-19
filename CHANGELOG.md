@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Breaking: moved from `package:flutter/material.dart` to `package:material_ui/material_ui.dart` (Flutter 3.50 deprecates the Material library in the SDK). Requires Flutter 3.50 or newer and `material_ui` in the app. Apps still on `package:flutter/material.dart` must stay on 0.2.x, because the Material widgets and `Theme` of the two libraries are different classes.
+
 ## 0.2.1
 
 - Documentation: full API docs, a rewritten README with demo GIFs, screenshots on pub.dev.

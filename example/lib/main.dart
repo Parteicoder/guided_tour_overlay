@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:guided_tour_overlay/guided_tour_overlay.dart';
 
 void main() => runApp(const MaterialApp(home: Demo()));
